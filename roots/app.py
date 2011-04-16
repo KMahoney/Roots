@@ -37,6 +37,16 @@ class RootsApp(object):
     '''
     A thin wrapper around Werkzeug routing for creating reusable, composable
     apps. Views can be added to an app with the `route` decorator.
+
+    `name`
+    Optional name of application.
+
+    `config`
+    Dictionary passed through to views.
+
+    `env_class`
+    Class to use to construct the object passed through to views on each
+    request.
     '''
 
     def __init__(self, name=None, config=None, env_class=RootsEnvironment):
