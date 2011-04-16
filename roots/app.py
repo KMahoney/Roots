@@ -4,23 +4,29 @@ from werkzeug.routing import Rule, Map, Submount
 from werkzeug.serving import run_simple
 
 
-class RootsAppAdapter(object):
-    '''A wrapper around MapAdapter, passed in to each view.'''
+class RootsEnvironment(object):
+    '''
+    An object passed in to each view with the current request's
+    environment. Contains the running RootsApp `app` and the current `request`.
+    '''
 
-    def __init__(self, app, adapter):
-        self._app = app
-        self._adapter = adapter
+    def __init__(self, app, map_adapter, request):
+        self._map_adapter = map_adapter
+
+        self.app = app
+        self.request = request
 
     def reverse(self, reversable, **kwargs):
         '''Construct a URL for `name`.'''
 
         if hasattr(reversable, 'reversable_with'):
-            return self._adapter.build(reversable.reversable_with, kwargs)
+            return self._map_adapter.build(reversable.reversable_with, kwargs)
 
-        return self._adapter.build(reversable, kwargs)
+        return self._map_adapter.build(reversable, kwargs)
 
-    def __getattr__(self, key):
-        return getattr(self._app, key)
+    @property
+    def config(self):
+        return self.app.config
 
 
 class ReversableNameConflictError(Exception):
@@ -30,16 +36,16 @@ class ReversableNameConflictError(Exception):
 class RootsApp(object):
     '''
     A thin wrapper around Werkzeug routing for creating reusable, composable
-    apps. Views can be added to an app with the `route` decorator. An adapter
-    is passed into each view which exposes the methods defined in this class,
-    plus a `reverse` method that can be used to construct URLs.
+    apps. Views can be added to an app with the `route` decorator.
     '''
 
-    def __init__(self, name=None, config=None):
+    def __init__(self, name=None, config=None, env_class=RootsEnvironment):
         self._map = Map()
         self._view_lookup = {}
-        self._children = []
+        self._env_class = env_class
+
         self.name = name
+        self.children = []
         self.config = config or {}
 
     def default_name(self, fn):
@@ -49,10 +55,10 @@ class RootsApp(object):
 
     def route(self, path, name=None, **kwargs):
         '''
-        Decorator to add a view to this app. Optionally pass in a view `name`
-        the app can `reverse` on.  By default the name will be
-        'app_name:function_name'.  The view should take `app` and `request`
-        parameters as well as any parameters defined in the URL.
+        Decorator to add a view to this app. Optionally pass in a view
+        `name` the app can `reverse` on.  By default the name will be
+        'app_name:function_name'.  The view should take at least one
+        parameter as well as any parameters defined in the URL.
         See `werkzeug.routing.Rule` for additional arguments.
         '''
 
@@ -79,7 +85,7 @@ class RootsApp(object):
 
         self._map.add(Submount(path, app._map._rules))
         self._view_lookup.update(app._view_lookup)
-        self._children.append(app)
+        self.children.append(app)
 
     def run(self, *args, **kwargs):
         '''
@@ -91,15 +97,15 @@ class RootsApp(object):
         run_simple(*args, application=self, **kwargs)
 
     def __call__(self, environ, start_response):
-        adapter = self._map.bind_to_environ(environ)
+        map_adapter = self._map.bind_to_environ(environ)
 
         try:
-            endpoint, kwargs = adapter.match()
+            endpoint, kwargs = map_adapter.match()
         except HTTPException, e:
             return e(environ, start_response)
 
-        view = self._view_lookup[endpoint]
-        app = RootsAppAdapter(self, adapter)
+        view_fn = self._view_lookup[endpoint]
         request = Request(environ)
-        response = view(app, request, **kwargs)
+        env = self._env_class(self, map_adapter, request)
+        response = view_fn(env, **kwargs)
         return response(environ, start_response)

@@ -16,9 +16,9 @@ child_app = RootsApp('childapp')
 
 # This view is called 'childapp:childview':
 @child_app.route("/<test>")
-def childview(app, request, test):
-    parent_url = app.reverse('parentapp:parentview')
-    text = app.config['text']
+def childview(env, test):
+    parent_url = env.reverse('parentapp:parentview')
+    text = env.config['text']
     return html("<h1>child view</h1>"
                 "<p>argument %s</p>"
                 "<p>config text: %s</p>"
@@ -34,9 +34,9 @@ parent_app = RootsApp(
 
 # This view is called 'parentapp:parentview':
 @parent_app.route("/")
-def parentview(app, request):
+def parentview(env):
     # You can also reverse using the function itself.
-    child_url = app.reverse(childview, test=123)
+    child_url = env.reverse(childview, test=123)
     return html("<h1>parent view</h1>"
                 "<a href=\"%s\">child_app</a>"
                 % child_url)
