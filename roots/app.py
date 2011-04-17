@@ -99,18 +99,6 @@ class RootsApp(object):
         self._view_lookup.update(app._view_lookup)
         self.children.append(app)
 
-    def action_run(self, prog, args):
-        '''Run a webserver with this app's routes.'''
-        parser = argparse.ArgumentParser(prog=prog)
-        parser.add_argument('--host', default='localhost')
-        parser.add_argument('--port', type=int, default=8000)
-        parser.add_argument('--reloader', action='store_true')
-        args = parser.parse_args(args)
-        run_simple(args.host,
-                   args.port,
-                   application=self,
-                   use_reloader=args.reloader)
-
     def __call__(self, environ, start_response):
         map_adapter = self._map.bind_to_environ(environ)
 
@@ -124,3 +112,30 @@ class RootsApp(object):
         env = self._env_class(self, map_adapter, request)
         response = view_fn(env, **kwargs)
         return response(environ, start_response)
+
+    # Actions
+
+    def action_run(self, prog, args):
+        '''Run a webserver with this app's routes.'''
+        parser = argparse.ArgumentParser(prog=prog)
+        parser.add_argument('--host', default='localhost')
+        parser.add_argument('--port', type=int, default=8000)
+        parser.add_argument('--reloader', action='store_true')
+        args = parser.parse_args(args)
+        run_simple(args.host,
+                   args.port,
+                   application=self,
+                   use_reloader=args.reloader)
+
+    def action_routes(self, prog, args):
+        '''List all routes for this app.'''
+        parser = argparse.ArgumentParser(prog=prog)
+        args = parser.parse_args(args)
+
+        from manage import _to_col, _colour
+
+        print
+        for rule in self._map.iter_rules():
+            print (_colour("1;32") + rule.endpoint + _colour() +
+                   _to_col(40) + rule.rule)
+        print
