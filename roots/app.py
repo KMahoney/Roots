@@ -5,6 +5,8 @@ from werkzeug.wrappers import Request
 from werkzeug.routing import Rule, Map, Submount
 from werkzeug.serving import run_simple
 
+from utils import to_col, colour
+
 
 class RootsEnvironment(object):
     '''
@@ -132,10 +134,6 @@ class RootsApp(object):
         parser = argparse.ArgumentParser(prog=prog)
         args = parser.parse_args(args)
 
-        from manage import _to_col, _colour
-
-        print
         for rule in self._map.iter_rules():
-            print (_colour("1;32") + rule.endpoint + _colour() +
-                   _to_col(40) + rule.rule)
-        print
+            print (colour("1;32") + rule.endpoint + colour() +
+                   to_col(40) + rule.rule)
