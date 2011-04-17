@@ -41,13 +41,13 @@ Run a server with:
 
 * Write your own RootsEnvironment and use it with:
 
-    RootsApp('myapp', env_class=MyRootsEnvironment)
+        RootsApp('myapp', env_class=MyRootsEnvironment)
 
 * Add management commands to your RootsApp:
 
-    class MyRootsApp(RootsApp):
-        def action_test(self, prog, args):
-            ...
+        class MyRootsApp(RootsApp):
+            def action_test(self, prog, args):
+                ...
 
 ## License
 
