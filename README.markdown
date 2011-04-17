@@ -2,6 +2,37 @@
 
 A thin wrapper around Werkzeug routing for creating reusable, composable apps.
 
+## Features
+
+### Add views to an app
+
+    app = RootsApp('demoapp')
+
+    @app.route("/<name>", name="example")
+    def view(env, name):
+        ...
+
+### Reverse view names to URLs
+
+    def otherview(env):
+        example_url = env.reverse("example")
+   
+### Mount child apps
+
+    from childapp import childapp
+    parent = RootsApp('parentapp')
+    parent.mount(childapp, "/child/")
+
+### Management commands
+
+    if __name__ == '__main__':
+        manage(app)
+
+Run a server with:
+
+    python2 <app>.py run --host <host> --port <port> --reloader
+
+
 ## License
 
 Copyright 2011 Kevin Mahoney.
