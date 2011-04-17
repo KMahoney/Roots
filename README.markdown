@@ -6,6 +6,8 @@ A thin wrapper around Werkzeug routing for creating reusable, composable apps.
 
 ### Add views to an app
 
+    from roots.app import RootsApp
+
     app = RootsApp('demoapp')
 
     @app.route("/<name>", name="example")
@@ -14,6 +16,7 @@ A thin wrapper around Werkzeug routing for creating reusable, composable apps.
 
 ### Reverse view names to URLs
 
+    @app.route("/other/", name="other")
     def otherview(env):
         example_url = env.reverse("example")
    
@@ -25,6 +28,8 @@ A thin wrapper around Werkzeug routing for creating reusable, composable apps.
 
 ### Management commands
 
+    from roots.manage import manage
+
     if __name__ == '__main__':
         manage(app)
 
@@ -32,6 +37,17 @@ Run a server with:
 
     python2 <app>.py run --host <host> --port <port> --reloader
 
+### Hackable
+
+* Write your own RootsEnvironment and use it with:
+
+    RootsApp('myapp', env_class=MyRootsEnvironment)
+
+* Add management commands to your RootsApp:
+
+    class MyRootsApp(RootsApp):
+        def action_test(self, prog, args):
+            ...
 
 ## License
 
