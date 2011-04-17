@@ -1,4 +1,5 @@
 from roots.app import RootsApp
+from roots.manage import manage
 from werkzeug.wrappers import Response
 
 
@@ -47,5 +48,6 @@ def parentview(env):
 # views, including child_app views.
 parent_app.mount(child_app, "/child/")
 
-# Run the server using the parent_app.
-parent_app.run('localhost', 3000, use_reloader=True)
+# management script
+if __name__ == '__main__':
+    manage(parent_app)

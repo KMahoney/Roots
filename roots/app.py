@@ -1,3 +1,5 @@
+import argparse
+
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request
 from werkzeug.routing import Rule, Map, Submount
@@ -97,14 +99,17 @@ class RootsApp(object):
         self._view_lookup.update(app._view_lookup)
         self.children.append(app)
 
-    def run(self, *args, **kwargs):
-        '''
-        Run a webserver with this app's routes.
-        See `werkzeug.serving.run_simple` for additional arguments. The most
-        useful is probably `use_reloader` which, when true, detects changes in
-        your code and reloads.
-        '''
-        run_simple(*args, application=self, **kwargs)
+    def action_run(self, prog, args):
+        '''Run a webserver with this app's routes.'''
+        parser = argparse.ArgumentParser(prog=prog)
+        parser.add_argument('--host', default='localhost')
+        parser.add_argument('--port', type=int, default=8000)
+        parser.add_argument('--reloader', action='store_true')
+        args = parser.parse_args(args)
+        run_simple(args.host,
+                   args.port,
+                   application=self,
+                   use_reloader=args.reloader)
 
     def __call__(self, environ, start_response):
         map_adapter = self._map.bind_to_environ(environ)
