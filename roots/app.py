@@ -117,7 +117,7 @@ class RootsApp(object):
 
     # Actions
 
-    def action_run(self, prog, args):
+    def action_run(self, root, prog, args):
         '''Run a webserver with this app's routes.'''
         parser = argparse.ArgumentParser(prog=prog)
         parser.add_argument('--host', default='localhost')
@@ -129,7 +129,7 @@ class RootsApp(object):
                    application=self,
                    use_reloader=args.reloader)
 
-    def action_routes(self, prog, args):
+    def action_routes(self, root, prog, args):
         '''List all routes for this app.'''
         parser = argparse.ArgumentParser(prog=prog)
         args = parser.parse_args(args)

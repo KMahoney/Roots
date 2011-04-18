@@ -89,10 +89,13 @@ def manage(app):
         actions = _action_lookup(app)
         name = sys.argv[1]
         prog = " ".join(sys.argv[:2])
+
         try:
             action = actions[name]
-            action(prog, sys.argv[2:])
         except KeyError:
             print "Invalid action: %s" % name
+            return
+
+        action(app, prog, sys.argv[2:])
     else:
         _usage(app)
