@@ -14,17 +14,19 @@ def _app_actions(app, qualified=False):
     Prepend app name if `qualified`.
     '''
     actions = []
-    app_dict = app.__class__.__dict__
+    cls = app.__class__
 
-    for key, value in app_dict.items():
-        match = re.match(ACTION_REGEXP, key)
-        if match:
-            if qualified and app.name:
-                action_name = "%s:%s" % (app.name, match.group(1))
-            else:
-                action_name = match.group(1)
-            action_fn = value.__get__(app)
-            actions.append((action_name, action_fn))
+    while cls != object:
+        for key, value in cls.__dict__.items():
+            match = re.match(ACTION_REGEXP, key)
+            if match:
+                if qualified and app.name:
+                    action_name = "%s:%s" % (app.name, match.group(1))
+                else:
+                    action_name = match.group(1)
+                action_fn = value.__get__(app)
+                actions.append((action_name, action_fn))
+        cls = cls.__base__
 
     return actions
 
