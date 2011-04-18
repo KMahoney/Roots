@@ -41,7 +41,7 @@ Run a server with:
 
 * Write your own RootsEnvironment and use it with:
 
-        RootsApp('myapp', env_class=MyRootsEnvironment)
+        RootsApp('myapp', environment=MyRootsEnvironment)
 
 * Add management commands to your RootsApp:
 
