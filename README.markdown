@@ -45,9 +45,9 @@ Run a server with:
 
 * Add management commands to your RootsApp:
 
-        class MyRootsApp(RootsApp):
-            def action_test(self, prog, args):
-                ...
+        @RootsApp.command(scope='local')
+        def action_test(app, root, prog, args):
+            ...
 
 ## License
 

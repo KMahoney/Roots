@@ -24,21 +24,49 @@ class SQLRootsApp(RootsApp):
         super(SQLRootsApp, self).__init__(*args, **kwargs)
         self._metadata = metadata
 
-    def action_sql_create(self, root, prog, args):
-        '''Create SQLAlchemy tables.'''
-        parser = argparse.ArgumentParser(prog=prog)
-        args = parser.parse_args(args)
 
-        engine = _engine(root)
-        if self._metadata:
-            self._metadata.create_all(engine)
+def _empty_parser(prog, args):
+    parser = argparse.ArgumentParser(prog=prog)
+    return parser.parse_args(args)
 
-    def action_sql_reset(self, root, prog, args):
-        '''Drop and re-create SQLAlchemy tables.'''
-        parser = argparse.ArgumentParser(prog=prog)
-        args = parser.parse_args(args)
 
-        engine = _engine(root)
-        if self._metadata:
-            self._metadata.drop_all(engine)
-            self._metadata.create_all(engine)
+def _all_metadata(root):
+    return (app._metadata
+            for app in root.iter_apps()
+            if hasattr(app, '_metadata') and app._metadata)
+
+
+@SQLRootsApp.command(scope='global')
+def sql_create_all(app, root, prog, args):
+    '''Create SQLAlchemy tables.'''
+    _empty_parser(prog, args)
+    engine = _engine(root)
+    for metadata in _all_metadata(root):
+        metadata.create_all(engine)
+
+
+@SQLRootsApp.command(scope='local')
+def sql_create(app, root, prog, args):
+    '''Create SQLAlchemy tables.'''
+    _empty_parser(prog, args)
+    engine = _engine(root)
+    app._metadata.create_all(engine)
+
+
+@SQLRootsApp.command(scope='global')
+def sql_reset_all(app, root, prog, args):
+    '''Drop and re-create SQLAlchemy tables for this app.'''
+    _empty_parser(prog, args)
+    engine = _engine(root)
+    for metadata in _all_metadata(root):
+        metadata.drop_all(engine)
+        metadata.create_all(engine)
+
+
+@SQLRootsApp.command(scope='local')
+def sql_reset(app, root, prog, args):
+    '''Drop and re-create SQLAlchemy tables for this app.'''
+    _empty_parser(prog, args)
+    engine = _engine(root)
+    app._metadata.drop_all(engine)
+    app._metadata.create_all(engine)
