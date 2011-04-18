@@ -8,6 +8,14 @@ from werkzeug.serving import run_simple
 from utils import to_col, colour
 
 
+class ReversableNameConflictError(Exception):
+    pass
+
+
+class RootsConfigError(Exception):
+    pass
+
+
 class RootsEnvironment(object):
     '''
     An object passed in to each view with the current request's
@@ -31,10 +39,6 @@ class RootsEnvironment(object):
     @property
     def config(self):
         return self.app.config
-
-
-class ReversableNameConflictError(Exception):
-    pass
 
 
 class RootsApp(object):
