@@ -48,15 +48,15 @@ class RootsApp(object):
     `config`
     Dictionary passed through to views.
 
-    `env_class`
+    `environment`
     Class to use to construct the object passed through to views on each
     request.
     '''
 
-    def __init__(self, name=None, config=None, env_class=RootsEnvironment):
+    def __init__(self, name=None, config=None, environment=RootsEnvironment):
         self._map = Map()
         self._view_lookup = {}
-        self._env_class = env_class
+        self._environment = environment
 
         self.name = name
         self.children = []
@@ -111,7 +111,7 @@ class RootsApp(object):
 
         view_fn = self._view_lookup[endpoint]
         request = Request(environ)
-        env = self._env_class(self, map_adapter, request)
+        env = self._environment(self, map_adapter, request)
         response = view_fn(env, **kwargs)
         return response(environ, start_response)
 
