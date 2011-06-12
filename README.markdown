@@ -1,53 +1,93 @@
 # Roots
 
-A thin wrapper around Werkzeug routing for creating reusable, composable apps.
+A lightweight abstraction around Werkzeug for creating reusable pieces of web application code.
+Similar in concept to Django apps.
+
+
+## Why?! Hasn't this been done a million times already?
+
+Mostly for fun. If somebody actually finds it useful, that's a bonus.
+
+Check out Bottle and Flask too.
+
+
+## Project Goals
+
+- Hot explicit Python action.
+- Flexible: does not mandate conventions.
+- Layered abstractions: decide how much you want to use.
+- Well documented code
+- Batteries: completely optional extended functionality included with the source.
+- Small and understandable: Werkzeug takes care of the hard parts.
+
 
 ## Features
 
-### Add views to an app
+### Apps
 
-    from roots.app import RootsApp
+- Add views to an app
 
-    app = RootsApp('demoapp')
+        from roots.app import RootsApp
+        from werkzeug.wrappers import Response
 
-    @app.route("/<name>", name="example")
-    def view(env, name):
-        ...
+        demoapp = RootsApp('demoapp')
 
-### Reverse view names to URLs
+        @app.route("/<name>")
+        def hello(env, name):
+            return Response("Hello %s" % name)
 
-    @app.route("/other/", name="other")
-    def otherview(env):
-        example_url = env.reverse("example")
-   
-### Mount child apps
+- Reverse view names to URLs
 
-    from childapp import childapp
-    parent = RootsApp('parentapp')
-    parent.mount(childapp, "/child/")
-
-### Management commands
-
-    from roots.manage import manage
-
-    if __name__ == '__main__':
-        manage(app)
-
-Run a server with:
-
-    python2 <app>.py run --host <host> --port <port> --reloader
-
-### Hackable
-
-* Write your own RootsEnvironment and use it with:
-
-        RootsApp('myapp', environment=MyRootsEnvironment)
-
-* Add management commands to your RootsApp:
-
-        @RootsApp.command(scope='local')
-        def action_test(app, root, prog, args):
+        @app.route("/other/")
+        def other(env):
+            example_url = env.reverse("demoapp:hello", name="Joe")
             ...
+
+- Mount child apps
+
+        parent = RootsApp('parentapp')
+        parent.mount(demoapp, "/child/")
+
+### Management
+
+- Command line invocation
+
+        from roots.manage import manage
+
+        if __name__ == '__main__':
+            manage(root=demoapp)
+
+    Run a server with:
+
+        $ python2 app.py run --host <host> --port <port> --reloader
+
+- Define new commands
+
+        from roots.manage import manage, command
+
+        @command()
+        def hello(name="Joe"):
+            '''Say hello!'''
+            print "Hello %s!" % name
+
+        if __name__ == '__main__':
+            manage(root=demoapp, commands=[hello])
+
+    Results in:
+
+        $ python2 app.py hello you
+        Hello you!
+
+
+## TODO
+
+- SQLAlchemy helpers.
+  - Associate metadata with apps.
+  - Table creation/deletion management commands.
+- Jinja2 helpers.
+- Tutorials and API documentation.
+- User authentication app, using SQLAlchemy.
+
 
 ## License
 
