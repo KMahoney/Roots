@@ -1,7 +1,7 @@
 import sys
 from functools import partial
 
-from utils import para_to_col, colour, pad
+from roots.utils.ansi import para_to_col, colour, pad
 
 
 def _global_commands(root):

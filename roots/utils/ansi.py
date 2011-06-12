@@ -1,6 +1,3 @@
-# ANSI bling
-
-
 def to_col(n):
     return "\033[%sG\033[K" % n
 
