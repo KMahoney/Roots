@@ -1,7 +1,56 @@
 import sys
+import argparse
+import inspect
 from functools import partial
 
 from roots.utils.ansi import para_to_col, colour, pad
+
+
+def _function_arg_parser(fn, ignore=[], arguments={}):
+    '''Inspect a function's arguments and create an argparse parser.'''
+    parser = argparse.ArgumentParser(description=fn.__doc__)
+    spec = inspect.getargspec(fn)
+    defaults = dict(zip(reversed(spec.args),
+                        reversed(spec.defaults)))
+    args = (arg for arg in spec.args if arg not in ignore)
+
+    for arg in args:
+        default = defaults.get(arg)
+
+        arg_params = {
+            'default': default,
+            'required': arg not in defaults,
+            }
+
+        if type(default) == bool:
+            arg_params.update({
+                    'action': 'store_const',
+                    'const': (not default),
+                    })
+        elif type(default) == list:
+            arg_params.update({'action': 'append'})
+
+        if arg in arguments:
+            arg_params.update(arguments[arg])
+
+        parser.add_argument("--" + arg, **arg_params)
+
+    return parser
+
+
+def command(arguments={}):
+    def _decorator(fn):
+        parser = _function_arg_parser(
+            fn,
+            ignore=["root"],
+            arguments=arguments)
+
+        def _parser(root, cmd_args):
+            namespace = parser.parse_args(cmd_args)
+            return fn(root, **vars(namespace))
+
+        return _parser
+    return _decorator
 
 
 def _global_commands(root):
