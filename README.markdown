@@ -1,7 +1,7 @@
 # Roots
 
-A lightweight abstraction around Werkzeug for creating reusable pieces of web application code.
-Similar in concept to Django apps.
+A lightweight abstraction around Werkzeug for creating modular, reusable pieces
+of web application code. Similar in concept to Django apps.
 
 
 ## Why?! Hasn't this been done a million times already?
@@ -14,11 +14,13 @@ Check out Bottle and Flask too.
 ## Project Goals
 
 - Hot explicit Python action.
-- Flexible: does not mandate conventions.
-- Layered abstractions: decide how much you want to use.
-- Well documented code
-- Batteries: completely optional extended functionality included with the source.
-- Small and understandable: Werkzeug takes care of the hard parts.
+- Modular.
+- Configurable.
+- Flexible.
+- Well documented code.
+- Batteries: completely optional extended functionality included.
+  - Optional integration with Jinja2, SQLAlchemy, and more.
+- Small and comprehensible.
 
 
 ## Features
@@ -27,10 +29,10 @@ Check out Bottle and Flask too.
 
 - Add views to an app
 
-        from roots.app import RootsApp
+        from roots.app import App
         from werkzeug.wrappers import Response
 
-        demoapp = RootsApp('demoapp')
+        demoapp = App('demoapp')
 
         @app.route("/<name>")
         def hello(env, name):
@@ -45,33 +47,45 @@ Check out Bottle and Flask too.
 
 - Mount child apps
 
-        parent = RootsApp('parentapp')
+        parent = App('parentapp')
         parent.mount(demoapp, "/child/")
 
-### Management
+### Managers
 
 - Command line invocation
 
-        from roots.manage import manage
+        from roots.manager import Manager
 
         if __name__ == '__main__':
-            manage(root=demoapp)
+            Manager(root=demoapp).main()
 
     Run a server with:
 
         $ python2 app.py run --host <host> --port <port> --reloader
 
+- Extend functionality
+
+        from roots.manager import Manager
+        from roots.integration import sqlalchemy
+
+        if __name__ == '__main__':
+            manager = Manager(root=demoapp)
+            manager.use_module_commands(sqlalchemy)
+            manager.main()
+
 - Define new commands
 
-        from roots.manage import manage, command
+        from roots.manager import Manager, command
 
         @command()
-        def hello(name="Joe"):
+        def hello(manager, name="Joe"):
             '''Say hello!'''
             print "Hello %s!" % name
 
         if __name__ == '__main__':
-            manage(root=demoapp, commands=[hello])
+            manager = Manager(root=demoapp)
+            manager.add_command(hello)
+            manager.main()
 
     Results in:
 
