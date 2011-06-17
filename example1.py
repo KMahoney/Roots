@@ -1,4 +1,4 @@
-from roots.app import RootsApp
+from roots.app import App
 from roots.manage import manage
 from werkzeug.wrappers import Response
 
@@ -8,7 +8,7 @@ def html(content):
 
 
 # The app name is optional
-child_app = RootsApp('childapp')
+child_app = App('childapp')
 
 # `route` can be passed a name, but by default the view is called
 # 'appname:functionname', or just the function name if the app
@@ -28,7 +28,7 @@ def childview(env, test):
 
 
 # Normally this would be in a different Python module.
-parent_app = RootsApp(
+parent_app = App(
     'parentapp',
     config={'text': 'example config'})
 

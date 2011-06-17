@@ -1,5 +1,5 @@
-from roots.app import RootsApp
-from roots.sqlalchemy import SQLRootsApp
+from roots.app import App
+from roots.sqlalchemy import SQLApp
 from roots.manage import manage
 from werkzeug.wrappers import Response
 
@@ -12,7 +12,7 @@ test = Table('access', metadata,
 
 # SQL app
 
-sqlapp = SQLRootsApp(metadata, 'sqlapp')
+sqlapp = SQLApp(metadata, 'sqlapp')
 
 
 # View
@@ -35,7 +35,7 @@ def add(env):
 # Must contain engine configuration
 
 engine = create_engine('sqlite:///test.db', echo=True)
-root = RootsApp('root', config={'engine': engine})
+root = App('root', config={'engine': engine})
 root.mount(sqlapp, '/')
 
 

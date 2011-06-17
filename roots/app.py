@@ -19,7 +19,7 @@ class RootsConfigError(Exception):
 class RootsEnvironment(object):
     '''
     An object passed in to each view with the current request's
-    environment. Contains the running RootsApp `app` and the current `request`.
+    environment. Contains the running App `app` and the current `request`.
     '''
 
     def __init__(self, app, map_adapter, request):
@@ -41,7 +41,7 @@ class RootsEnvironment(object):
         return self.app.config
 
 
-class RootsApp(object):
+class App(object):
     '''
     A thin wrapper around Werkzeug routing for creating reusable, composable
     apps. Views can be added to an app with the `route` decorator.
@@ -146,7 +146,7 @@ class RootsApp(object):
         return response(environ, start_response)
 
 
-@RootsApp.command(scope='all')
+@App.command(scope='all')
 def run(app, root, prog, args):
     '''Run a webserver with this app's routes.'''
     parser = argparse.ArgumentParser(prog=prog)
@@ -160,7 +160,7 @@ def run(app, root, prog, args):
                use_reloader=args.reloader)
 
 
-@RootsApp.command(scope='all')
+@App.command(scope='all')
 def routes(app, root, prog, args):
     '''List all routes for this app.'''
     parser = argparse.ArgumentParser(prog=prog)

@@ -2,7 +2,7 @@
 
 import argparse
 
-from roots.app import RootsApp, RootsConfigError
+from roots.app import App, RootsConfigError
 
 
 def _engine(app):
@@ -14,14 +14,14 @@ def _engine(app):
             "No SQL engine has been configured for %s." % name)
 
 
-class SQLRootsApp(RootsApp):
+class SQLApp(App):
     '''
     App that provides management commands to create and reset SQLAlchemy
     tables.
     '''
 
     def __init__(self, metadata, *args, **kwargs):
-        super(SQLRootsApp, self).__init__(*args, **kwargs)
+        super(SQLApp, self).__init__(*args, **kwargs)
         self._metadata = metadata
 
 
@@ -36,7 +36,7 @@ def _all_metadata(root):
             if hasattr(app, '_metadata') and app._metadata)
 
 
-@SQLRootsApp.command(scope='global')
+@SQLApp.command(scope='global')
 def sql_create_all(app, root, prog, args):
     '''Create SQLAlchemy tables.'''
     _empty_parser(prog, args)
@@ -45,7 +45,7 @@ def sql_create_all(app, root, prog, args):
         metadata.create_all(engine)
 
 
-@SQLRootsApp.command(scope='local')
+@SQLApp.command(scope='local')
 def sql_create(app, root, prog, args):
     '''Create SQLAlchemy tables.'''
     _empty_parser(prog, args)
@@ -53,7 +53,7 @@ def sql_create(app, root, prog, args):
     app._metadata.create_all(engine)
 
 
-@SQLRootsApp.command(scope='global')
+@SQLApp.command(scope='global')
 def sql_reset_all(app, root, prog, args):
     '''Drop and re-create SQLAlchemy tables for this app.'''
     _empty_parser(prog, args)
@@ -63,7 +63,7 @@ def sql_reset_all(app, root, prog, args):
         metadata.create_all(engine)
 
 
-@SQLRootsApp.command(scope='local')
+@SQLApp.command(scope='local')
 def sql_reset(app, root, prog, args):
     '''Drop and re-create SQLAlchemy tables for this app.'''
     _empty_parser(prog, args)
