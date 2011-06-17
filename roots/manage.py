@@ -1,19 +1,23 @@
 import sys
 import argparse
 import inspect
-from functools import partial
+from functools import partial, wraps
 
 from roots.utils.ansi import para_to_col, colour, pad
 
 
 def _function_arg_parser(fn, ignore=[], arguments={}):
-    '''Inspect a function's arguments and create an argparse parser.'''
+    '''
+    Inspect a function's arguments and create an :py:mod:`argparse` parser.
+
+    '''
     parser = argparse.ArgumentParser(description=fn.__doc__)
     spec = inspect.getargspec(fn)
     defaults = dict(zip(reversed(spec.args),
                         reversed(spec.defaults)))
     args = (arg for arg in spec.args if arg not in ignore)
 
+    # Construct an option for each function argument that hasn't been ignored
     for arg in args:
         default = defaults.get(arg)
 
@@ -22,6 +26,8 @@ def _function_arg_parser(fn, ignore=[], arguments={}):
             'required': arg not in defaults,
             }
 
+        # Try to determine option behaviour by looking at the argument's
+        # default value.
         if type(default) == bool:
             arg_params.update({
                     'action': 'store_const',
@@ -39,12 +45,21 @@ def _function_arg_parser(fn, ignore=[], arguments={}):
 
 
 def command(arguments={}):
-    def _decorator(fn):
-        parser = _function_arg_parser(
-            fn,
-            ignore=["root"],
-            arguments=arguments)
+    '''
+    Create a new :py:class:`Manager` command.
 
+    The function should take an argument named `manager`, which is the
+    :py:class:`Manager` used to invoke the command. Remaining arguments
+    will be automatically converted to a :py:mod:`argparse` parser.
+
+    :param arguments: A dictionary mapping function arguments to parameters
+        used in :py:meth:`ArgumentParser.add_argument`.
+
+    '''
+    def _decorator(fn):
+        parser = _function_arg_parser(fn, ignore=["root"], arguments=arguments)
+
+        @wraps(fn)
         def _parser(root, cmd_args):
             namespace = parser.parse_args(cmd_args)
             return fn(root, **vars(namespace))
@@ -55,7 +70,7 @@ def command(arguments={}):
 
 def _global_commands(root):
     return sorted(set(cmd
-                      for cls in set(app.__class__ for app in root.iter_apps())
+                      for cls in set(app.__class__ for app in root.app_iterator())
                       for cmd in cls.commands
                       if cmd.scope in ['global', 'all']))
 
@@ -79,7 +94,7 @@ def _command_lookup(root):
     lookup = dict((cmd.name, partial(cmd, root, root))
                   for cmd in _global_commands(root))
 
-    for app in root.iter_apps():
+    for app in root.app_iterator():
         if app.name:
             lookup.update(_local_commands_lookup(app, root))
 
@@ -109,7 +124,7 @@ def _usage(root):
 
     _list_global_commands(root)
 
-    for app in root.iter_apps():
+    for app in root.app_iterator():
         if app.name:
             _list_local_commands(app)
 

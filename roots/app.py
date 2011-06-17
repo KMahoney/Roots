@@ -18,19 +18,30 @@ class RootsConfigError(Exception):
 
 class RootsEnvironment(object):
     '''
-    An object passed in to each view with the current request's
-    environment. Contains the running App `app` and the current `request`.
-    '''
+    An object constructed by the :py:class:`App` on each request and passed in
+    to the view.
 
-    def __init__(self, app, map_adapter, request):
+    :attribute root: Currently running root app.
+    :attribute request: Current :py:class:`Request` object.
+
+    '''
+    def __init__(self, root, map_adapter, request):
         self._map_adapter = map_adapter
 
-        self.app = app
+        self.root = root
         self.request = request
 
     def reverse(self, reversable, **kwargs):
-        '''Construct a URL for `name`.'''
+        '''
+        Construct a URL.
 
+        :param reversable:
+            A string, or an object with a `reversable_with` property.
+
+        Additional keyword arugments will be passed into the URL builder to
+        construct the URL.
+
+        '''
         if hasattr(reversable, 'reversable_with'):
             return self._map_adapter.build(reversable.reversable_with, kwargs)
 
@@ -38,25 +49,21 @@ class RootsEnvironment(object):
 
     @property
     def config(self):
-        return self.app.config
+        return self.root.config
 
 
 class App(object):
     '''
-    A thin wrapper around Werkzeug routing for creating reusable, composable
+    A thin wrapper around Werkzeug routing for creating reusable, modular
     apps. Views can be added to an app with the `route` decorator.
 
-    `name`
-    Optional name of application.
+    :param name:
+        Optional name of application.
+    :param environment:
+        Class to use to construct the object passed through to views on each
+        request.
 
-    `config`
-    Dictionary passed through to views.
-
-    `environment`
-    Class to use to construct the object passed through to views on each
-    request.
     '''
-
     commands = []
 
     def __init__(self, name=None, config=None, environment=RootsEnvironment):
@@ -87,19 +94,26 @@ class App(object):
         return _add_command
 
     def default_name(self, fn):
+        ''':returns: default reverse name for `fn`.'''
         if self.name:
             return "%s:%s" % (self.name, fn.__name__)
         return fn.__name__
 
     def route(self, path, name=None, **kwargs):
         '''
-        Decorator to add a view to this app. Optionally pass in a view
-        `name` the app can `reverse` on.  By default the name will be
-        'app_name:function_name'.  The view should take at least one
-        parameter as well as any parameters defined in the URL.
-        See `werkzeug.routing.Rule` for additional arguments.
-        '''
+        Decorator to add a view to this app. The view function should take an
+        environment as its first paramter and any additional keyword parameters
+        defined in the `path`.
 
+        :param path: The URL for this view. All named parameters should be
+            reflected as keyword parameters in the view function.
+        :param name:
+            A string used to reverse to this view. Default:
+            'appname:functionname'.
+
+        See :py:class:`werkzeug.routing.Rule` for additional arguments.
+
+        '''
         def _add_rule(fn):
             fn.reversable_with = name or self.default_name(fn)
 
@@ -115,7 +129,6 @@ class App(object):
 
     def mount(self, app, path):
         '''Mount a child app under `path`.'''
-
         # check for reversable name conflicts
         for key in app._view_lookup.keys():
             if key in self._view_lookup:
@@ -125,10 +138,11 @@ class App(object):
         self._view_lookup.update(app._view_lookup)
         self.children.append(app)
 
-    def iter_apps(self):
+    def app_iterator(self):
+        '''Iterate over all apps in tree order.'''
         yield self
         for child in self.children:
-            for app in child.iter_apps():
+            for app in child.app_iterator():
                 yield app
 
     def __call__(self, environ, start_response):

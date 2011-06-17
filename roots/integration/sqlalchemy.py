@@ -32,7 +32,7 @@ def _empty_parser(prog, args):
 
 def _all_metadata(root):
     return (app._metadata
-            for app in root.iter_apps()
+            for app in root.app_iterator()
             if hasattr(app, '_metadata') and app._metadata)
 
 
