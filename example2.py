@@ -1,5 +1,5 @@
 from roots.app import App
-from roots.sqlalchemy import SQLApp
+from roots.integration.sqlalchemy import SQLApp
 from roots.manage import manage
 from werkzeug.wrappers import Response
 
