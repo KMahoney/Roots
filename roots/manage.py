@@ -13,8 +13,8 @@ def _function_arg_parser(fn, ignore=[], arguments={}):
     '''
     parser = argparse.ArgumentParser(description=fn.__doc__)
     spec = inspect.getargspec(fn)
-    defaults = dict(zip(reversed(spec.args),
-                        reversed(spec.defaults)))
+    defaults = dict(zip(reversed(spec.args or []),
+                        reversed(spec.defaults or [])))
     args = (arg for arg in spec.args if arg not in ignore)
 
     # Construct an option for each function argument that hasn't been ignored
@@ -44,7 +44,7 @@ def _function_arg_parser(fn, ignore=[], arguments={}):
     return parser
 
 
-def command(arguments={}):
+def command(name=None, help=None, arguments={}):
     '''
     Create a new :py:class:`Manager` command.
 
@@ -52,19 +52,28 @@ def command(arguments={}):
     :py:class:`Manager` used to invoke the command. Remaining arguments
     will be automatically converted to a :py:mod:`argparse` parser.
 
-    :param arguments: A dictionary mapping function arguments to parameters
-        used in :py:meth:`ArgumentParser.add_argument`.
+    :param name:
+        The name of the command. Default: function name.
+    :param help:
+        Help to display in usage information. Default: function docstring.
+    :param arguments:
+        A dictionary mapping function arguments to parameters used in
+        :py:meth:`ArgumentParser.add_argument`.
 
     '''
     def _decorator(fn):
-        parser = _function_arg_parser(fn, ignore=["root"], arguments=arguments)
+        parser = _function_arg_parser(
+            fn, ignore=["manager"], arguments=arguments)
 
         @wraps(fn)
-        def _parser(root, cmd_args):
+        def _command(manager, cmd_args):
             namespace = parser.parse_args(cmd_args)
-            return fn(root, **vars(namespace))
+            return fn(manager, **vars(namespace))
 
-        return _parser
+        _command.command_name = name or fn.__name__
+        _command.command_help = help or fn.__doc__
+        parser.prog = _command.command_name
+        return _command
     return _decorator
 
 
