@@ -1,5 +1,5 @@
 from roots.app import App
-from roots.manage import manage
+from roots.manage import Manager
 from werkzeug.wrappers import Response
 
 
@@ -50,4 +50,4 @@ parent_app.mount(child_app, "/child/")
 
 # management script
 if __name__ == '__main__':
-    manage(parent_app)
+    Manager(parent_app).main()
