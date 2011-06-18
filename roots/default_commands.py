@@ -1,6 +1,6 @@
 from werkzeug.serving import run_simple
 
-from roots.manager import command
+from roots.command import command
 from roots.utils.ansi import to_col, colour
 
 
