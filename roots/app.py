@@ -1,11 +1,6 @@
-import argparse
-
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request
 from werkzeug.routing import Rule, Map, Submount
-from werkzeug.serving import run_simple
-
-from roots.utils.ansi import to_col, colour
 
 
 class ReversableNameConflictError(Exception):
@@ -64,8 +59,6 @@ class App(object):
         request.
 
     '''
-    commands = []
-
     def __init__(self, name=None, config=None, environment=RootsEnvironment):
         self._map = Map()
         self._view_lookup = {}
@@ -74,24 +67,6 @@ class App(object):
         self.name = name
         self.children = []
         self.config = config or {}
-
-    @classmethod
-    def command(cls, scope='local', name=None):
-        '''
-        Add a command to this class. `scope` should be 'global' when applicable
-        to all apps, and 'local' when applicable only to the current app.
-        '''
-        def _add_command(fn):
-            fn.scope = scope
-            fn.name = name or fn.__name__
-
-            # create a copy of the superclass commands list if needed
-            if 'commands' not in cls.__dict__:
-                cls.commands = list(cls.commands)
-
-            cls.commands.append(fn)
-            return fn
-        return _add_command
 
     def default_name(self, fn):
         ''':returns: default reverse name for `fn`.'''
@@ -158,28 +133,3 @@ class App(object):
         env = self._environment(self, map_adapter, request)
         response = view_fn(env, **kwargs)
         return response(environ, start_response)
-
-
-@App.command(scope='all')
-def run(app, root, prog, args):
-    '''Run a webserver with this app's routes.'''
-    parser = argparse.ArgumentParser(prog=prog)
-    parser.add_argument('--host', default='localhost')
-    parser.add_argument('--port', type=int, default=8000)
-    parser.add_argument('--reloader', action='store_true')
-    args = parser.parse_args(args)
-    run_simple(args.host,
-               args.port,
-               application=app,
-               use_reloader=args.reloader)
-
-
-@App.command(scope='all')
-def routes(app, root, prog, args):
-    '''List all routes for this app.'''
-    parser = argparse.ArgumentParser(prog=prog)
-    args = parser.parse_args(args)
-
-    for rule in app._map.iter_rules():
-        print (colour("1;32") + rule.endpoint + colour() +
-               to_col(40) + rule.rule)
