@@ -28,9 +28,7 @@ def childview(env, test):
 
 
 # Normally this would be in a different Python module.
-parent_app = App(
-    'parentapp',
-    config={'text': 'example config'})
+parent_app = App('parentapp')
 
 
 # This view is called 'parentapp:parentview':
@@ -50,4 +48,6 @@ parent_app.mount(child_app, "/child/")
 
 # management script
 if __name__ == '__main__':
-    Manager(parent_app).main()
+    manager = Manager(parent_app)
+    manager.config['text'] = 'example config'
+    manager.main()

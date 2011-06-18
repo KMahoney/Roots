@@ -16,14 +16,17 @@ class RootsEnvironment(object):
     An object constructed by the :py:class:`App` on each request and passed in
     to the view.
 
-    :attribute root: Currently running root app.
-    :attribute request: Current :py:class:`Request` object.
+    :param root: Running root app.
+    :param config: Configuration dictionary.
+    :param map_adapter: App routes bound to WSGI environment.
+    :param request: :py:class:`Request` object.
 
     '''
-    def __init__(self, root, map_adapter, request):
+    def __init__(self, root, config, map_adapter, request):
         self._map_adapter = map_adapter
 
         self.root = root
+        self.config = config
         self.request = request
 
     def reverse(self, reversable, **kwargs):
@@ -42,10 +45,6 @@ class RootsEnvironment(object):
 
         return self._map_adapter.build(reversable, kwargs)
 
-    @property
-    def config(self):
-        return self.root.config
-
 
 class App(object):
     '''
@@ -59,14 +58,13 @@ class App(object):
         request.
 
     '''
-    def __init__(self, name=None, config=None, environment=RootsEnvironment):
+    def __init__(self, name=None, environment=RootsEnvironment):
         self._map = Map()
         self._view_lookup = {}
         self._environment = environment
 
         self.name = name
         self.children = []
-        self.config = config or {}
 
     def default_name(self, fn):
         ''':returns: default reverse name for `fn`.'''
@@ -120,7 +118,7 @@ class App(object):
             for app in child.app_iterator():
                 yield app
 
-    def __call__(self, environ, start_response):
+    def wsgi_request(self, config, environ, start_response):
         map_adapter = self._map.bind_to_environ(environ)
 
         try:
@@ -130,6 +128,6 @@ class App(object):
 
         view_fn = self._view_lookup[endpoint]
         request = Request(environ)
-        env = self._environment(self, map_adapter, request)
+        env = self._environment(self, config, map_adapter, request)
         response = view_fn(env, **kwargs)
         return response(environ, start_response)

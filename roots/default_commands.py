@@ -7,7 +7,7 @@ from roots.utils.ansi import to_col, colour
 @command()
 def run(manager, host="localhost", port=8000, reloader=False):
     '''Run a webserver.'''
-    run_simple(host, port, application=manager.root, use_reloader=reloader)
+    run_simple(host, port, application=manager, use_reloader=reloader)
 
 
 @command()

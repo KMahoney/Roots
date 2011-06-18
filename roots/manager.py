@@ -66,3 +66,7 @@ class Manager(object):
             return
 
         return command(self, args)
+
+    def __call__(self, environ, start_response):
+        '''Handle WSGI call.'''
+        return self.root.wsgi_request(self.config, environ, start_response)
