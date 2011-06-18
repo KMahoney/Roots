@@ -63,19 +63,20 @@ Check out Bottle and Flask too.
 
         $ python2 app.py run --host <host> --port <port> --reloader
 
-- Extend functionality
+- Extend command line functionality
 
         from roots.manager import Manager
         from roots.integration import sqlalchemy
 
         if __name__ == '__main__':
             manager = Manager(root=demoapp)
-            manager.use_module_commands(sqlalchemy)
+            manager.use_object_commands(sqlalchemy)
             manager.main()
 
 - Define new commands
 
-        from roots.manager import Manager, command
+        from roots.manager import Manager
+        from roots.command import command
 
         @command()
         def hello(manager, name="Joe"):
@@ -89,7 +90,7 @@ Check out Bottle and Flask too.
 
     Results in:
 
-        $ python2 app.py hello you
+        $ python2 app.py hello --name you
         Hello you!
 
 
