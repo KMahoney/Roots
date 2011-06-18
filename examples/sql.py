@@ -35,5 +35,5 @@ if __name__ == '__main__':
 
 # To run:
 
-# python2 example2.py sql_create_all
+# python2 example2.py sql.create
 # python2 example2.py run

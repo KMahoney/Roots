@@ -23,16 +23,16 @@ def _all_metadata(root):
             if hasattr(app, '_metadata') and app._metadata)
 
 
-@command()
-def sql_create_all(manager):
+@command(name="sql.create")
+def sql_create(manager):
     '''Create SQLAlchemy tables.'''
     engine = manager.config['engine']
     for metadata in _all_metadata(manager.root):
         metadata.create_all(engine)
 
 
-@command()
-def sql_reset_all(manager):
+@command(name="sql.reset")
+def sql_reset(manager):
     '''Drop and re-create SQLAlchemy tables.'''
     engine = manager.config['engine']
     for metadata in _all_metadata(manager.root):
