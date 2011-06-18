@@ -1,5 +1,5 @@
 from roots.app import App
-from roots.manage import Manager
+from roots.manager import Manager
 from werkzeug.wrappers import Response
 
 
