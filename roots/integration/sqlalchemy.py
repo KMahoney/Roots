@@ -1,33 +1,20 @@
-'''Optional SQLAlchemy integration for Roots.'''
+'''
+Optional SQLAlchemy integration for Roots.
 
-import argparse
-
-from roots.app import App, RootsConfigError
-
-
-def _engine(app):
-    try:
-        return app.config['engine']
-    except KeyError:
-        name = app.name or "the root app"
-        raise RootsConfigError(
-            "No SQL engine has been configured for %s." % name)
+'''
+from roots.app import App
+from roots.command import command
 
 
 class SQLApp(App):
     '''
     App that provides management commands to create and reset SQLAlchemy
     tables.
-    '''
 
+    '''
     def __init__(self, metadata, *args, **kwargs):
         super(SQLApp, self).__init__(*args, **kwargs)
         self._metadata = metadata
-
-
-def _empty_parser(prog, args):
-    parser = argparse.ArgumentParser(prog=prog)
-    return parser.parse_args(args)
 
 
 def _all_metadata(root):
@@ -36,37 +23,18 @@ def _all_metadata(root):
             if hasattr(app, '_metadata') and app._metadata)
 
 
-@SQLApp.command(scope='global')
-def sql_create_all(app, root, prog, args):
+@command()
+def sql_create_all(manager):
     '''Create SQLAlchemy tables.'''
-    _empty_parser(prog, args)
-    engine = _engine(root)
-    for metadata in _all_metadata(root):
+    engine = manager.config['engine']
+    for metadata in _all_metadata(manager.root):
         metadata.create_all(engine)
 
 
-@SQLApp.command(scope='local')
-def sql_create(app, root, prog, args):
-    '''Create SQLAlchemy tables.'''
-    _empty_parser(prog, args)
-    engine = _engine(root)
-    app._metadata.create_all(engine)
-
-
-@SQLApp.command(scope='global')
-def sql_reset_all(app, root, prog, args):
-    '''Drop and re-create SQLAlchemy tables for this app.'''
-    _empty_parser(prog, args)
-    engine = _engine(root)
-    for metadata in _all_metadata(root):
+@command()
+def sql_reset_all(manager):
+    '''Drop and re-create SQLAlchemy tables.'''
+    engine = manager.config['engine']
+    for metadata in _all_metadata(manager.root):
         metadata.drop_all(engine)
         metadata.create_all(engine)
-
-
-@SQLApp.command(scope='local')
-def sql_reset(app, root, prog, args):
-    '''Drop and re-create SQLAlchemy tables for this app.'''
-    _empty_parser(prog, args)
-    engine = _engine(root)
-    app._metadata.drop_all(engine)
-    app._metadata.create_all(engine)

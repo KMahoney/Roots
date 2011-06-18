@@ -1,47 +1,37 @@
-from roots.app import App
-from roots.integration.sqlalchemy import SQLApp
-from roots.manage import manage
 from werkzeug.wrappers import Response
-
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer
+
+from roots.manager import Manager
+from roots.integration import sqlalchemy as roots_alchemy
 
 metadata = MetaData()
 
-test = Table('access', metadata,
+test = Table('access',
+             metadata,
              Column('id', Integer, primary_key=True))
 
-# SQL app
-
-sqlapp = SQLApp(metadata, 'sqlapp')
+sqlapp = roots_alchemy.SQLApp(metadata, 'sqlapp')
 
 
-# View
-
-def execute(env, *args, **kwargs):
+def _execute(env, *args, **kwargs):
     return env.config['engine'].execute(*args, **kwargs)
 
 
 @sqlapp.route("/")
 def add(env):
-    execute(env, test.insert())
+    _execute(env, test.insert())
     ul = "<ul>"
-    for n in execute(env, test.select()):
+    for n in _execute(env, test.select()):
         ul += "<li>%s</li>" % n.id
     ul += "</ul>"
     return Response(ul, mimetype='text/html')
 
 
-# Root app
-# Must contain engine configuration
-
-engine = create_engine('sqlite:///test.db', echo=True)
-root = App('root', config={'engine': engine})
-root.mount(sqlapp, '/')
-
-
-# management script
 if __name__ == '__main__':
-    manage(root)
+    manager = Manager(root=sqlapp)
+    manager.config['engine'] = create_engine('sqlite:///test.db', echo=True)
+    manager.use_object_commands(roots_alchemy)
+    manager.main()
 
 # To run:
 
