@@ -74,8 +74,13 @@ def command(name=None, help=None, arguments={}):
     return _decorator
 
 
-def _valid_command(name, value):
+def _valid_command((name, value)):
     return ((not name.startswith("_")) and
             callable(value) and
             hasattr(value, "command_name") and
             hasattr(value, "command_help"))
+
+
+def find_object_commands(obj):
+    '''Find valid commands in `obj`.'''
+    return dict(filter(_valid_command, obj.__dict__.items()))

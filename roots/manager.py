@@ -2,7 +2,7 @@ import sys
 from operator import attrgetter
 
 from roots.utils.ansi import para_to_col, colour
-from roots.command import _valid_command
+from roots.command import find_object_commands
 from roots import default_commands
 
 
@@ -23,14 +23,11 @@ class Manager(object):
 
     def add_command(self, command):
         '''Add a command to the manager.'''
-        assert _valid_command(command.__name__, command)
         self._commands[command.command_name] = command
 
     def use_object_commands(self, obj):
         '''Scan `obj` for commands and add them to the manager.'''
-        for name, value in obj.__dict__.items():
-            if _valid_command(name, value):
-                self._commands[value.command_name] = value
+        self._commands.update(find_object_commands(obj))
 
     def use_object_as_config(self, obj):
         '''Use `obj` top level definitions as configuration.'''
