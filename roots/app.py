@@ -53,15 +53,11 @@ class App(object):
 
     :param name:
         Optional name of application.
-    :param environment:
-        Class to use to construct the object passed through to views on each
-        request.
 
     '''
-    def __init__(self, name=None, environment=RootsEnvironment):
+    def __init__(self, name=None):
         self._map = Map()
         self._view_lookup = {}
-        self._environment = environment
 
         self.name = name
         self.children = []
@@ -71,6 +67,19 @@ class App(object):
         if self.name:
             return "%s:%s" % (self.name, fn.__name__)
         return fn.__name__
+
+    def make_environment(self, root, config, map_adapter, request):
+        '''Create the environment to pass to this app's view functions.'''
+        return RootsEnvironment(root, config, map_adapter, request)
+
+    def respond(self, view_fn, url_args, root, config, map_adapter, request):
+        '''
+        Method called by the WSGI application that creates an environment and
+        calls the view function.
+
+        '''
+        env = self.make_environment(root, config, map_adapter, request)
+        return view_fn(env, **url_args)
 
     def route(self, path, name=None, **kwargs):
         '''
@@ -87,7 +96,7 @@ class App(object):
         See :py:class:`werkzeug.routing.Rule` for additional arguments.
 
         '''
-        def _add_rule(fn):
+        def _add_rule_decorator(fn):
             fn.reversable_with = name or self.default_name(fn)
 
             if fn.reversable_with in self._view_lookup:
@@ -95,10 +104,10 @@ class App(object):
 
             rule = Rule(path, endpoint=fn.reversable_with, **kwargs)
             self._map.add(rule)
-            self._view_lookup[fn.reversable_with] = fn
+            self._view_lookup[fn.reversable_with] = (self, fn)
             return fn
 
-        return _add_rule
+        return _add_rule_decorator
 
     def mount(self, app, path):
         '''Mount a child app under `path`.'''
@@ -118,7 +127,7 @@ class App(object):
             for app in child.app_iterator():
                 yield app
 
-    def wsgi_request(self, config, environ, start_response):
+    def handle_wsgi_request(self, config, environ, start_response):
         map_adapter = self._map.bind_to_environ(environ)
 
         try:
@@ -126,8 +135,8 @@ class App(object):
         except HTTPException, e:
             return e(environ, start_response)
 
-        view_fn = self._view_lookup[endpoint]
+        (app, view_fn) = self._view_lookup[endpoint]
         request = Request(environ)
-        env = self._environment(self, config, map_adapter, request)
-        response = view_fn(env, **kwargs)
+        response = app.respond(
+            view_fn, kwargs, self, config, map_adapter, request)
         return response(environ, start_response)

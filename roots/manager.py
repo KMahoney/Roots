@@ -104,5 +104,6 @@ class Manager(object):
         run_simple(host, port, application=self, use_reloader=reloader)
 
     def __call__(self, environ, start_response):
-        '''Handle WSGI call.'''
-        return self.root.wsgi_request(self.config, environ, start_response)
+        '''Make this Manager object behave like a WSGI application.'''
+        return self.root.handle_wsgi_request(
+            self.config, environ, start_response)
