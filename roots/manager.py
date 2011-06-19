@@ -1,5 +1,7 @@
 import sys
 
+from werkzeug.serving import run_simple
+
 from roots.command import Commands
 from roots import default_commands
 
@@ -96,6 +98,10 @@ class Manager(object):
             return
 
         return command(self, args)
+
+    def run(self, host="localhost", port=8000, reloader=False):
+        '''Serve this :py:class:`Manager` using the Werkzeug server.'''
+        run_simple(host, port, application=self, use_reloader=reloader)
 
     def __call__(self, environ, start_response):
         '''Handle WSGI call.'''
