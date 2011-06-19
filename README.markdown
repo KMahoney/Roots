@@ -13,9 +13,11 @@ Check out Bottle and Flask too.
 ### Some differences between Roots and Bottle/Flask
 
 - Roots is in an early stage of development and has unstable interfaces.
+- Roots has explicit semantics where practical.
+  Flask, for example, uses context locals where Roots passes through an 'environment' parameter explicitly.
 - Roots provides command line management for your projects.
 - Roots separates out the configuration (Manager) from the collections of routes (App).
-- Roots has an emphasis on mounting sub-apps for modularity, although this is certainly possible in Bottle and Flask too.
+- Roots has an emphasis on mounting sub-apps for modularity, although this is certainly possible in Bottle and Flask too. Flask has 'Module' objects.
 
 
 ## Project Goals
