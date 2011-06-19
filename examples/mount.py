@@ -49,5 +49,5 @@ parent_app.mount(child_app, "/child/")
 # management script
 if __name__ == '__main__':
     manager = Manager(parent_app)
-    manager.config['text'] = 'example config'
+    manager.config.text = 'example config'
     manager.main()

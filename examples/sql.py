@@ -14,7 +14,7 @@ sqlapp = roots_alchemy.SQLApp(metadata, 'sqlapp')
 
 
 def _execute(env, *args, **kwargs):
-    return env.config['engine'].execute(*args, **kwargs)
+    return env.config.engine.execute(*args, **kwargs)
 
 
 @sqlapp.route("/")
@@ -29,7 +29,7 @@ def add(env):
 
 if __name__ == '__main__':
     manager = Manager(root=sqlapp)
-    manager.config['engine'] = create_engine('sqlite:///test.db', echo=True)
+    manager.config.engine = create_engine('sqlite:///test.db', echo=True)
     manager.commands.use_object(roots_alchemy)
     manager.main()
 

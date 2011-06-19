@@ -4,6 +4,22 @@ from roots.command import Commands
 from roots import default_commands
 
 
+class Config(dict):
+    '''A dictionary of configuration options. Allows access with attributes.'''
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def __getattr__(self, key):
+        return self[key]
+
+    def use_object(self, obj):
+        '''Use `obj` top level definitions as configuration.'''
+        for name, value in obj.__dict__.items():
+            if (not name.startswith("_")):
+                self[name] = value
+
+
 class Manager(object):
     '''
     A Manager object holds configuration options and handles the command line.
@@ -39,17 +55,11 @@ class Manager(object):
 
     '''
     def __init__(self, root, commands=None, config=None):
-        self.commands = Commands(commands or {})
         self.root = root
-        self.config = config or {}
+        self.commands = Commands(commands or {})
+        self.config = Config(config or {})
 
         self.commands.use_object(default_commands)
-
-    def use_object_as_config(self, obj):
-        '''Use `obj` top level definitions as configuration.'''
-        for name, value in obj.__dict__.items():
-            if (not name.startswith("_")):
-                self.config[name] = value
 
     def main(self):
         '''
