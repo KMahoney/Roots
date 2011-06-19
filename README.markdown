@@ -77,7 +77,7 @@ Check out Bottle and Flask too.
 
         if __name__ == '__main__':
             manager = Manager(root=demoapp)
-            manager.use_object_commands(sqlalchemy)
+            manager.commands.use_object(sqlalchemy)
             manager.main()
 
 - Define new commands
@@ -92,7 +92,7 @@ Check out Bottle and Flask too.
 
         if __name__ == '__main__':
             manager = Manager(root=demoapp)
-            manager.add_command(hello)
+            manager.commands.add(hello)
             manager.main()
 
     Results in:
