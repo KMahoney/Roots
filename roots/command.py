@@ -107,3 +107,8 @@ class Commands(dict):
         for command in self.as_list():
             doc = para_to_col(30, command.command_help or "-")
             print colour("1;32") + command.command_name + colour() + doc
+
+    def add(self, command):
+        '''Add a new command.'''
+        assert _valid_command(command.command_name, command)
+        self[command.command_name] = command
