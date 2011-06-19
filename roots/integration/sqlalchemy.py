@@ -2,19 +2,33 @@
 Optional SQLAlchemy integration for Roots.
 
 '''
-from roots.app import App
+from roots.app import App, RootsEnvironment
 from roots.command import command
+
+
+class SQLEnvironment(RootsEnvironment):
+    '''Environment with some SQLAlchemy helpers.'''
+
+    @property
+    def engine(self):
+        return self.config.engine
+
+    def execute(self, *args, **kwargs):
+        return self.engine.execute(*args, **kwargs)
 
 
 class SQLApp(App):
     '''
     App that provides management commands to create and reset SQLAlchemy
-    tables.
+    tables. SQLApp provides a :class:`SQLEnvironment` to its views.
 
     '''
     def __init__(self, metadata, *args, **kwargs):
         super(SQLApp, self).__init__(*args, **kwargs)
         self._metadata = metadata
+
+    def make_environment(self, *args, **kwargs):
+        return SQLEnvironment(*args, **kwargs)
 
 
 def _all_metadata(root):

@@ -13,15 +13,11 @@ test = Table('access',
 sqlapp = roots_alchemy.SQLApp(metadata, 'sqlapp')
 
 
-def _execute(env, *args, **kwargs):
-    return env.config.engine.execute(*args, **kwargs)
-
-
 @sqlapp.route("/")
 def add(env):
-    _execute(env, test.insert())
+    env.execute(test.insert())
     ul = "<ul>"
-    for n in _execute(env, test.select()):
+    for n in env.execute(test.select()):
         ul += "<li>%s</li>" % n.id
     ul += "</ul>"
     return Response(ul, mimetype='text/html')
