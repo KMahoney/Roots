@@ -30,7 +30,7 @@ def add(env):
 if __name__ == '__main__':
     manager = Manager(root=sqlapp)
     manager.config['engine'] = create_engine('sqlite:///test.db', echo=True)
-    manager.use_object_commands(roots_alchemy)
+    manager.commands.use_object(roots_alchemy)
     manager.main()
 
 # To run:

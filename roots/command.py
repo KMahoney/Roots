@@ -1,6 +1,9 @@
 import argparse
 import inspect
+from operator import attrgetter
 from functools import wraps
+
+from roots.utils.ansi import para_to_col, colour
 
 
 def _function_arg_parser(fn, ignore=[], arguments={}):
@@ -74,13 +77,33 @@ def command(name=None, help=None, arguments={}):
     return _decorator
 
 
-def _valid_command((name, value)):
+def _valid_command(name, value):
     return ((not name.startswith("_")) and
             callable(value) and
             hasattr(value, "command_name") and
             hasattr(value, "command_help"))
 
 
-def find_object_commands(obj):
+def _find_object_commands(obj):
     '''Find valid commands in `obj`.'''
-    return dict(filter(_valid_command, obj.__dict__.items()))
+    return dict((value.command_name or name, value)
+                for name, value in obj.__dict__.items()
+                if _valid_command(name, value))
+
+
+class Commands(dict):
+    '''A dictionary of command-line commands.'''
+
+    def use_object(self, obj):
+        '''Add all valid commands found in `obj`.'''
+        self.update(_find_object_commands(obj))
+
+    def as_list(self):
+        ''':returns: A list of commands in alphabetical order.'''
+        return sorted(self.values(), key=attrgetter('command_name'))
+
+    def print_usage(self):
+        '''Print a list of commands to standard output.'''
+        for command in self.as_list():
+            doc = para_to_col(30, command.command_help or "-")
+            print colour("1;32") + command.command_name + colour() + doc

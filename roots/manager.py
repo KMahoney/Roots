@@ -1,8 +1,6 @@
 import sys
-from operator import attrgetter
 
-from roots.utils.ansi import para_to_col, colour
-from roots.command import find_object_commands
+from roots.command import Commands
 from roots import default_commands
 
 
@@ -41,20 +39,11 @@ class Manager(object):
 
     '''
     def __init__(self, root, commands=None, config=None):
-        self._commands = commands or {}
-
+        self.commands = Commands(commands or {})
         self.root = root
         self.config = config or {}
 
-        self.use_object_commands(default_commands)
-
-    def add_command(self, command):
-        '''Add a command to the manager.'''
-        self._commands[command.command_name] = command
-
-    def use_object_commands(self, obj):
-        '''Scan `obj` for commands and add them to the manager.'''
-        self._commands.update(find_object_commands(obj))
+        self.commands.use_object(default_commands)
 
     def use_object_as_config(self, obj):
         '''Use `obj` top level definitions as configuration.'''
@@ -62,23 +51,13 @@ class Manager(object):
             if (not name.startswith("_")):
                 self.config[name] = value
 
-    @property
-    def command_list(self):
-        ''':returns: A list of commands in alphabetical order.'''
-        return sorted(self._commands.values(), key=attrgetter('command_name'))
-
-    def usage(self):
-        '''Print a list of commands to standard output.'''
-        for command in self.command_list:
-            doc = para_to_col(30, command.command_help or "-")
-            print colour("1;32") + command.command_name + colour() + doc
-
     def main(self):
         '''
-        Handle command line input and run commands.
+        Handle command line input and run commands. If no command is specified,
+        list them.
 
-        Additional commands can be added with :py:meth:`add_command` and
-        :py:meth:`use_object_commands`. Commands are typically defined with the
+        Additional commands can be added to the :py:attr:`commands` dictionary
+        and with :py:meth:`use_object`. Commands are typically defined with the
         :py:func:`command` decorator, but any object that has `command_name`
         and `command_help` attributes and is callable with a manager and a list
         of command line arguments can be a valid command.
@@ -91,18 +70,19 @@ class Manager(object):
         default, which includes commands to run a webserver and list routes.
 
         '''
+        # Print usage if no command specified
         if len(sys.argv) <= 1:
-            self.usage()
+            self.commands.print_usage()
             return
 
         name = sys.argv[1]
         args = sys.argv[2:]
 
         try:
-            command = self._commands[name]
+            command = self.commands[name]
         except KeyError:
             print "Invalid command: %s" % name
-            self.usage()
+            self.commands.print_usage()
             return
 
         return command(self, args)
