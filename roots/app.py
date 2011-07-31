@@ -56,10 +56,17 @@ class App(object):
 
     '''
     def __init__(self, name=None):
+        # `App` is a wrapper around `werkzeug.routing.Map`
         self._map = Map()
+
+        # Keep a dictionary of name -> view lookups. This will be updated
+        # whenever a new view is added or sub-app mounted.
         self._view_lookup = {}
 
+        # The app name is used to give views a default lookup name.
         self.name = name
+
+        # List of mounted sub apps.
         self.children = []
 
     def default_name(self, fn):
