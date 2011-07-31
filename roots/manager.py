@@ -27,7 +27,7 @@ class Manager(object):
     A Manager object holds configuration options and handles the command line.
     It is a valid WSGI application, and can be wrapped with WSGI middleware.
 
-    Typically, you would create an :py:class:`App` to use as a 'root' like so::
+    Typically, you would create an :class:`App` to use as a 'root' like so::
 
         from roots.app import App
         from roots.manager import Manager
@@ -40,7 +40,7 @@ class Manager(object):
             Manager(app).main()
 
     For more complicated projects, it is more likely you would be importing
-    your :py:class:`App` from somewhere, and adding configuration::
+    your :class:`App` from somewhere, and adding configuration::
 
         from roots.manager import Manager
         from example.project import app, config
@@ -51,7 +51,7 @@ class Manager(object):
             manager.use_object_as_config(config)
             manger.main()
 
-    :param root: Root :py:class:`App`.
+    :param root: Root :class:`App`.
     :param commands: Initial dictionary of commands.
     :param config: Initial configuration dictionary.
 
@@ -68,17 +68,17 @@ class Manager(object):
         Handle command line input and run commands. If no command is specified,
         list them.
 
-        Additional commands can be added to the :py:attr:`commands` dictionary
-        and with :py:meth:`use_object`. Commands are typically defined with the
-        :py:func:`command` decorator, but any object that has `command_name`
-        and `command_help` attributes and is callable with a manager and a list
-        of command line arguments can be a valid command.
+        Additional commands can be added to the :attr:`commands` dictionary and
+        with :meth:`use_object`. Commands are typically defined with the
+        :func:`command` decorator, but any object that has `command_name` and
+        `command_help` attributes and is callable with a manager and a list of
+        command line arguments can be a valid command.
 
-        Commands defined with the :py:func:`command` decorator use
-        :py:module:`argparse` and accept '-h' as a parameter to list their
+        Commands defined with the :func:`command` decorator use
+        :module:`argparse` and accept '-h' as a parameter to list their
         options.
 
-        Commands defined in :py:module:`roots.default_commands` are added by
+        Commands defined in :module:`roots.default_commands` are added by
         default, which includes commands to run a webserver and list routes.
 
         '''
@@ -100,7 +100,7 @@ class Manager(object):
         return command(self, args)
 
     def run(self, host="localhost", port=8000, reloader=False):
-        '''Serve this :py:class:`Manager` using the Werkzeug server.'''
+        '''Serve this :class:`Manager` using the Werkzeug server.'''
         run_simple(host, port, application=self, use_reloader=reloader)
 
     def __call__(self, environ, start_response):

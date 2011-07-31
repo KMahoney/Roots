@@ -13,13 +13,13 @@ class RootsConfigError(Exception):
 
 class RootsEnvironment(object):
     '''
-    An object constructed by the :py:class:`App` on each request and passed in
+    An object constructed by the :class:`App` on each request and passed in
     to the view.
 
     :param root: Running root app.
     :param config: Configuration dictionary.
     :param map_adapter: App routes bound to WSGI environment.
-    :param request: :py:class:`Request` object.
+    :param request: :class:`Request` object.
 
     '''
     def __init__(self, root, config, map_adapter, request):
@@ -93,7 +93,7 @@ class App(object):
             A string used to reverse to this view. Default:
             'appname:functionname'.
 
-        See :py:class:`werkzeug.routing.Rule` for additional arguments.
+        See :class:`werkzeug.routing.Rule` for additional arguments.
 
         :note:
             The order in which you define your routes is important! The router

@@ -8,7 +8,7 @@ from roots.utils.ansi import para_to_col, colour
 
 def _function_arg_parser(fn, ignore=[], arguments={}):
     '''
-    Inspect a function's arguments and create an :py:mod:`argparse` parser.
+    Inspect a function's arguments and create an :mod:`argparse` parser.
 
     '''
     parser = argparse.ArgumentParser(description=fn.__doc__)
@@ -46,11 +46,11 @@ def _function_arg_parser(fn, ignore=[], arguments={}):
 
 def command(name=None, help=None, arguments={}):
     '''
-    Create a new :py:class:`Manager` command.
+    Create a new :class:`Manager` command.
 
     The function should take an argument named `manager`, which is the
-    :py:class:`Manager` used to invoke the command. Remaining arguments
-    will be automatically converted to a :py:mod:`argparse` parser.
+    :class:`Manager` used to invoke the command. Remaining arguments
+    will be automatically converted to a :mod:`argparse` parser.
 
     :param name:
         The name of the command. Default: function name.
@@ -58,7 +58,7 @@ def command(name=None, help=None, arguments={}):
         Help to display in usage information. Default: function docstring.
     :param arguments:
         A dictionary mapping function arguments to parameters used in
-        :py:meth:`ArgumentParser.add_argument`.
+        :meth:`ArgumentParser.add_argument`.
 
     '''
     def _decorator(fn):
