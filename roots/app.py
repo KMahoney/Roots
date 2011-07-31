@@ -95,6 +95,10 @@ class App(object):
 
         See :py:class:`werkzeug.routing.Rule` for additional arguments.
 
+        :note:
+            The order in which you define your routes is important! The router
+            will use the first match it finds.
+
         '''
         def _add_rule_decorator(fn):
             fn.reversable_with = name or self.default_name(fn)
