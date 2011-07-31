@@ -1,3 +1,8 @@
+# setup python path
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
 from roots.app import App
 from roots.manager import Manager
 from werkzeug.wrappers import Response
