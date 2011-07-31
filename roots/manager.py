@@ -48,7 +48,7 @@ class Manager(object):
         if __name__ == '__main__':
             manager = Manager(app)
             manager.config['example'] = ...
-            manager.use_object_as_config(config)
+            manager.config.use_object(config)
             manger.main()
 
     :param root: Root :class:`App`.
@@ -75,10 +75,10 @@ class Manager(object):
         command line arguments can be a valid command.
 
         Commands defined with the :func:`command` decorator use
-        :module:`argparse` and accept '-h' as a parameter to list their
+        :mod:`argparse` and accept '-h' as a parameter to list their
         options.
 
-        Commands defined in :module:`roots.default_commands` are added by
+        Commands defined in :mod:`roots.default_commands` are added by
         default, which includes commands to run a webserver and list routes.
 
         '''
