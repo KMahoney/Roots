@@ -49,12 +49,11 @@ class ExtendableEnvironment(object):
 
 class ConfigEnv(object):
     '''
-    Allow access to the root app and configuration.
+    Allow access to the configuration.
     This environment is included by default on every request.
 
     '''
-    def __init__(self, root, config):
-        self.root = root
+    def __init__(self, config):
         self.config = config
 
 
@@ -115,23 +114,6 @@ class App(object):
             return "%s:%s" % (self.name, fn.__name__)
         return fn.__name__
 
-    def make_environment(self, root, config, map_adapter, request):
-        '''Create the environment to pass to this app's view functions.'''
-        env = ExtendableEnvironment()
-        env.extend_environment(request)
-        env.extend_environment(ConfigEnv(root, config))
-        env.extend_environment(ReverseEnv(map_adapter))
-        return env
-
-    def respond(self, view_fn, url_args, root, config, map_adapter, request):
-        '''
-        Method called by the WSGI application that creates an environment and
-        calls the view function.
-
-        '''
-        env = self.make_environment(root, config, map_adapter, request)
-        return view_fn(env, **url_args)
-
     def route(self, path, name=None, **kwargs):
         '''
         Decorator to add a view to this app. The view function should take an
@@ -159,14 +141,14 @@ class App(object):
 
             rule = Rule(path, endpoint=fn.reversable_with, **kwargs)
             self._map.add(rule)
-            self._view_lookup[fn.reversable_with] = (self, fn)
+            self._view_lookup[fn.reversable_with] = fn
             return fn
 
         return _add_rule_decorator
 
     def mount(self, app, path):
         '''Mount a child app under `path`.'''
-        # check for reversable name conflicts
+        # Check for reversable name conflicts.
         for key in app._view_lookup.keys():
             if key in self._view_lookup:
                 raise ReversableNameConflictError(key)
@@ -183,15 +165,23 @@ class App(object):
                 yield app
 
     def handle_wsgi_request(self, config, environ, start_response):
+        # Bind the environment to the URL router.
         map_adapter = self._map.bind_to_environ(environ)
 
+        # Lookup view.
         try:
             endpoint, kwargs = map_adapter.match()
         except HTTPException, e:
             return e(environ, start_response)
 
-        (app, view_fn) = self._view_lookup[endpoint]
-        request = Request(environ)
-        response = app.respond(
-            view_fn, kwargs, self, config, map_adapter, request)
+        view_fn = self._view_lookup[endpoint]
+
+        # Create default environment.
+        env = ExtendableEnvironment()
+        env.extend_environment(Request(environ))
+        env.extend_environment(ConfigEnv(config))
+        env.extend_environment(ReverseEnv(map_adapter))
+
+        # Call the view. This expects a valid WSGI app in response.
+        response = view_fn(env, **kwargs)
         return response(environ, start_response)
