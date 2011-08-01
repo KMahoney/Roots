@@ -3,22 +3,41 @@ from werkzeug.wrappers import Request
 from werkzeug.routing import Rule, Map, Submount
 
 
+# Define some useful exceptions.
+
 class ReversableNameConflictError(Exception):
+    '''
+    An app has tried to create a named view that conflicts with an existing
+    view. This can happen when an app mounts a sub-app that contains a view
+    with a conflicting name.
+
+    '''
     pass
 
 
 class RootsConfigError(Exception):
+    '''
+    A generic error indicating a mistake or missing option in the
+    configuration.
+
+    '''
     pass
 
 
+# Define the various classes that make up the 'environment' passed through to
+# views.
+
 class ExtendableEnvironment(object):
     '''
-    A composite, extendable environment.
+    An environment is a 'catch-all' convenience object. It is a composite of
+    objects that contain useful properties and methods for the view, and it is
+    extendable at run-time.
 
     Constructed by the :class:`App` on each request and passed in to the view.
-    This object defers to a chain of sub-environments; the sub environments
+    This object defers to a chain of sub-environments. The sub environments
     included by default are the :class:`Request` object itself, a
-    :class:`ConfigEnv` and a :class:`ReverseEnv`.
+    :class:`ConfigEnv` which provides the :attr:`config` property and a
+    :class:`ReverseEnv` which provides the :meth:`reverse` method.
 
     '''
     def __init__(self):
@@ -85,13 +104,19 @@ class ReverseEnv(object):
         return self._map_adapter.build(reversable, kwargs)
 
 
+# Define the main 'App'.
+
 class App(object):
     '''
-    A thin wrapper around Werkzeug routing for creating reusable, modular
-    apps. Views can be added to an app with the `route` decorator.
+    A thin wrapper around Werkzeug routing, intended for creating reusable,
+    modular apps. Views can be added to an app with the :meth:`route`
+    decorator.
 
-    :param name:
-        Optional name of application.
+    An app is a collection of routes that can handle a WSGI request when
+    combined with a configuration. Apps can :meth:`mount` other apps with a URL
+    path prefix.
+
+    :param name: Name of the application (optional).
 
     '''
     def __init__(self, name=None):
@@ -158,7 +183,7 @@ class App(object):
         self.children.append(app)
 
     def app_iterator(self):
-        '''Iterate over all apps in tree order.'''
+        '''Iterate over all descendant apps (inclusive) in tree order.'''
         yield self
         for child in self.children:
             for app in child.app_iterator():

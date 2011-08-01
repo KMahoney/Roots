@@ -4,14 +4,46 @@ Roots API
 The Roots App
 -------------
 
-.. automodule:: roots.app
-    :members: App, RootsEnvironment
+.. autoclass:: roots.app.App
+    :members:
+
+The Environment
+---------------
+
+.. autoclass:: roots.app.ExtendableEnvironment
+    :members:
+
+.. autoclass:: roots.app.ConfigEnv
+    :members:
+
+.. autoclass:: roots.app.ReverseEnv
+    :members:
+
+Exceptions
+----------
+
+.. autoclass:: roots.app.ReversableNameConflictError
+    :members:
+
+.. autoclass:: roots.app.RootsConfigError
+    :members:
 
 The Roots Manager
 -----------------
 
-.. automodule:: roots.manager
-    :members: Manager, Config
+.. autoclass:: roots.manager.Manager
+    :members: 
 
-.. automodule:: roots.command
-    :members: Commands, command
+Configuration
+-------------
+
+.. autoclass:: roots.manager.Config
+    :members: 
+
+Commands
+--------
+
+.. autoclass:: roots.command.Commands
+    :members:
+
+.. autofunction:: roots.command.command
