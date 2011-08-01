@@ -19,6 +19,7 @@ sqlapp = roots_alchemy.SQLApp(metadata, 'sqlapp')
 
 
 @sqlapp.route("/")
+@roots_alchemy.sql_environment
 def add(env):
     env.execute(test.insert())
     ul = "<ul>"

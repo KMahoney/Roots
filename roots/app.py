@@ -11,23 +11,63 @@ class RootsConfigError(Exception):
     pass
 
 
-class RootsEnvironment(object):
+class ExtendableEnvironment(object):
     '''
-    An object constructed by the :class:`App` on each request and passed in
-    to the view.
+    A composite, extendable environment.
 
-    :param root: Running root app.
-    :param config: Configuration dictionary.
-    :param map_adapter: App routes bound to WSGI environment.
-    :param request: :class:`Request` object.
+    Constructed by the :class:`App` on each request and passed in to the view.
+    This object defers to a chain of sub-environments; the sub environments
+    included by default are the :class:`Request` object itself, a
+    :class:`ConfigEnv` and a :class:`ReverseEnv`.
 
     '''
-    def __init__(self, root, config, map_adapter, request):
-        self._map_adapter = map_adapter
+    def __init__(self):
+        self._environments = []
 
+    def extend_environment(self, env):
+        '''
+        Extend this environment with a sub-environment.
+
+        The environment is appended to the end of the chain, and so has the
+        least priority.
+
+        '''
+        self._environments.append(env)
+
+    def __getattr__(self, key):
+        for env in self._environments:
+            try:
+                return getattr(env, key)
+            except AttributeError:
+                pass
+        raise AttributeError(key)
+
+    def __repr__(self):
+        chain = '->'.join(env.__class__.__name__ for env in self._environments)
+        return 'Env(%s)' % chain
+
+
+class ConfigEnv(object):
+    '''
+    Allow access to the root app and configuration.
+    This environment is included by default on every request.
+
+    '''
+    def __init__(self, root, config):
         self.root = root
         self.config = config
-        self.request = request
+
+
+class ReverseEnv(object):
+    '''
+    Provides the :meth:'reverse' method to construct URLs.
+    This environment is included by default on every request.
+
+    :param map_adapter: App routes bound to WSGI environment.
+
+    '''
+    def __init__(self, map_adapter):
+        self._map_adapter = map_adapter
 
     def reverse(self, reversable, **kwargs):
         '''
@@ -77,7 +117,11 @@ class App(object):
 
     def make_environment(self, root, config, map_adapter, request):
         '''Create the environment to pass to this app's view functions.'''
-        return RootsEnvironment(root, config, map_adapter, request)
+        env = ExtendableEnvironment()
+        env.extend_environment(request)
+        env.extend_environment(ConfigEnv(root, config))
+        env.extend_environment(ReverseEnv(map_adapter))
+        return env
 
     def respond(self, view_fn, url_args, root, config, map_adapter, request):
         '''

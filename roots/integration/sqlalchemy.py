@@ -2,19 +2,28 @@
 Optional SQLAlchemy integration for Roots.
 
 '''
-from roots.app import App, RootsEnvironment
+from functools import wraps
+
+from roots.app import App
 from roots.command import command
 
 
-class SQLEnvironment(RootsEnvironment):
-    '''Environment with some SQLAlchemy helpers.'''
+class SQLEnvironment(object):
+    '''Environment Mixin with some SQLAlchemy helpers.'''
 
-    @property
-    def engine(self):
-        return self.config.engine
+    def __init__(self, engine):
+        self.engine = engine
 
     def execute(self, *args, **kwargs):
         return self.engine.execute(*args, **kwargs)
+
+
+def sql_environment(view):
+    @wraps(view)
+    def _view(env, *args, **kwargs):
+        env.extend_environment(SQLEnvironment(env.config.engine))
+        return view(env, *args, **kwargs)
+    return _view
 
 
 class SQLApp(App):
@@ -26,9 +35,6 @@ class SQLApp(App):
     def __init__(self, metadata, *args, **kwargs):
         super(SQLApp, self).__init__(*args, **kwargs)
         self._metadata = metadata
-
-    def make_environment(self, *args, **kwargs):
-        return SQLEnvironment(*args, **kwargs)
 
 
 def _all_metadata(root):
